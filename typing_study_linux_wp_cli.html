@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerminalTypist - Linux & WP CLI Typing Practice</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        h1 {
+            color: #5de4c7;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(93, 228, 199, 0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(93, 228, 199, 0.3); }
+            to { text-shadow: 0 0 30px rgba(93, 228, 199, 0.6); }
+        }
+        
+        .level-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, #5de4c7, #4fc3f7);
+            color: #1e1e1e;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(93, 228, 199, 0.3);
+        }
+        
+        .achievement-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.5s ease;
+            z-index: 1000;
+            font-weight: bold;
+            border: 2px solid #fff;
+        }
+        
+        .achievement-popup.show {
+            transform: translateX(0);
+        }
+        
+        .combo-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            font-weight: bold;
+            color: #5de4c7;
+            opacity: 0;
+            pointer-events: none;
+            text-shadow: 0 0 30px rgba(93, 228, 199, 0.8);
+            z-index: 999;
+            animation: comboAnimation 1s ease-out;
+        }
+        
+        @keyframes comboAnimation {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat {
+            background: linear-gradient(135deg, #3a3a3a, #2d2d2d);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #5de4c7;
+            box-shadow: 0 4px 15px rgba(93, 228, 199, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(93, 228, 199, 0.2);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #5de4c7;
+            margin-bottom: 5px;
+            transition: color 0.3s ease;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #ccc;
+        }
+        
+        .terminal {
+            background: linear-gradient(135deg, #2d2d2d, #3a3a3a);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid #5de4c7;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .terminal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #5de4c7, #4fc3f7, #5de4c7);
+            animation: scanline 2s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .prompt {
+            color: #5de4c7;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .cursor-blink {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .command-display {
+            font-size: 20px;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid #5de4c7;
+        }
+        
+        .command-input {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #333, #404040);
+            border: 2px solid #5de4c7;
+            border-radius: 10px;
+            color: #f0f0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .command-input:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(93, 228, 199, 0.5);
+            transform: scale(1.02);
+        }
+        
+        .correct {
+            color: #5de4c7;
+            text-shadow: 0 0 10px rgba(93, 228, 199, 0.5);
+        }
+        
+        .incorrect {
+            color: #ff6666;
+            text-decoration: underline;
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 15px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #3a3a3a, #4a4a4a);
+            color: #f0f0f0;
+            border: 2px solid #5de4c7;
+            border-radius: 10px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(93, 228, 199, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:hover {
+            background: linear-gradient(45deg, #4a4a4a, #5a5a5a);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(93, 228, 199, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .active {
+            background: linear-gradient(45deg, #5de4c7, #4fc3f7);
+            color: #1e1e1e;
+            box-shadow: 0 5px 20px rgba(93, 228, 199, 0.4);
+        }
+        
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+        
+        .command-info {
+            background: linear-gradient(135deg, #333, #404040);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 1px solid #5de4c7;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .command-info h3 {
+            margin-top: 0;
+            color: #5de4c7;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .lesson-progress {
+            height: 12px;
+            background: linear-gradient(90deg, #333, #404040);
+            border-radius: 6px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #5de4c7, #4fc3f7);
+            border-radius: 6px;
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(93, 228, 199, 0.5);
+        }
+        
+        .streak-meter {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .streak-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #333;
+            border: 2px solid #5de4c7;
+            transition: all 0.3s ease;
+        }
+        
+        .streak-dot.active {
+            background: #5de4c7;
+            box-shadow: 0 0 10px rgba(93, 228, 199, 0.8);
+        }
+        
+        .difficulty-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .difficulty-btn {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+        
+        .power-ups {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .power-up {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .power-up:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(155, 89, 182, 0.5);
+        }
+        
+        .power-up:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .typing-particles {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #5de4c7;
+            border-radius: 50%;
+            animation: particleFloat 1s ease-out forwards;
+        }
+        
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px) scale(0);
+            }
+        }
+        
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(45deg, #3a3a3a, #4a4a4a);
+            border: 2px solid #5de4c7;
+            color: #f0f0f0;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .sound-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(93, 228, 199, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <button class="sound-toggle" id="sound-toggle" title="Toggle Sound">🔊</button>
+    
+    <div class="achievement-popup" id="achievement-popup">
+        <div id="achievement-text">Achievement Unlocked!</div>
+    </div>
+    
+    <div class="combo-indicator" id="combo-indicator"></div>
+    
+    <header>
+        <h1>TerminalTypist</h1>
+        <div class="level-indicator" id="level-indicator">Level 1</div>
+        <p>Master Linux & WordPress CLI commands through typing practice</p>
+    </header>
+    
+    <div class="mode-selector">
+        <button id="linux-mode" class="active">🐧 Linux Commands</button>
+        <button id="wp-mode">📝 WP CLI Commands</button>
+    </div>
+    
+    <div class="difficulty-selector">
+        <button class="difficulty-btn active" data-difficulty="beginner">🌱 Beginner</button>
+        <button class="difficulty-btn" data-difficulty="intermediate">🚀 Intermediate</button>
+        <button class="difficulty-btn" data-difficulty="advanced">⚡ Advanced</button>
+    </div>
+    
+    <div class="streak-meter" id="streak-meter">
+        <span>Streak: </span>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+    </div>
+    
+    <div class="lesson-progress">
+        <div id="progress-bar" class="progress-bar"></div>
+    </div>
+    
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-value" id="wpm">0</div>
+            <div class="stat-label">WPM</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="accuracy">0%</div>
+            <div class="stat-label">Accuracy</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="progress">0/10</div>
+            <div class="stat-label">Progress</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="score">0</div>
+            <div class="stat-label">Score</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="level">1</div>
+            <div class="stat-label">Level</div>
+        </div>
+    </div>
+    
+    <div class="terminal" id="terminal">
+        <div class="typing-particles" id="typing-particles"></div>
+        <div class="prompt" id="prompt">
+            user@server:~$ <span class="cursor-blink">█</span>
+        </div>
+        <div class="command-display" id="command-display"></div>
+        <input type="text" class="command-input" id="command-input" placeholder="Type the command above..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+    
+    <div class="power-ups">
+        <button class="power-up" id="slow-mo" title="Slow Motion (3 uses)">🐌</button>
+        <button class="power-up" id="hint" title="Show Hint (5 uses)">💡</button>
+        <button class="power-up" id="skip" title="Skip Command (2 uses)">⏭️</button>
+    </div>
+    
+    <div class="command-info" id="command-info">
+        <h3>📖 Command Information</h3>
+        <p id="command-description">Start typing to see command information...</p>
+    </div>
+    
+    <div class="buttons">
+        <button id="prev-btn">⬅️ Previous</button>
+        <button id="restart-btn">🔄 Restart</button>
+        <button id="next-btn">Next ➡️</button>
+    </div>
+    
+    <script>
+        // Enhanced command sets with difficulty levels
+        const commandSets = {
+            linux: {
+                beginner: [
+                    { command: "ls", description: "Lists files and directories in the current directory." },
+                    { command: "cd /home", description: "Changes directory to /home." },
+                    { command: "pwd", description: "Shows the current directory path." },
+                    { command: "mkdir test", description: "Creates a new directory called 'test'." },
+                    { command: "touch file.txt", description: "Creates an empty file named 'file.txt'." }
+                ],
+                intermediate: [
+                    { command: "ls -la", description: "Lists all files and directories in long format, including hidden files." },
+                    { command: "cd /var/www/html", description: "Changes directory to the common web root folder." },
+                    { command: "chmod 755 script.sh", description: "Changes file permissions to be executable by owner and readable/executable by others." },
+                    { command: "find . -name \"*.php\"", description: "Finds all PHP files in the current directory and subdirectories." },
+                    { command: "grep -r \"function\" .", description: "Searches recursively for the word 'function' in all files." }
+                ],
+                advanced: [
+                    { command: "find /var/log -name \"*.log\" -mtime +7 -exec rm {} \\;", description: "Finds and removes log files older than 7 days." },
+                    { command: "tar -xzvf archive.tar.gz -C /opt/", description: "Extracts a compressed archive to a specific directory." },
+                    { command: "awk '{print $1}' /var/log/apache2/access.log | sort | uniq -c | sort -nr", description: "Analyzes Apache access logs to find most frequent IP addresses." },
+                    { command: "rsync -avz --exclude='*.tmp' source/ user@remote:/destination/", description: "Synchronizes files to a remote server, excluding temporary files." },
+                    { command: "sed -i 's/old_string/new_string/g' *.conf", description: "Replaces text in all configuration files using sed." }
+                ]
+            },
+            wp: {
+                beginner: [
+                    { command: "wp --info", description: "Shows WordPress CLI information and system details." },
+                    { command: "wp core version", description: "Displays the current WordPress version." },
+                    { command: "wp plugin list", description: "Lists all installed plugins." },
+                    { command: "wp theme list", description: "Lists all installed themes." },
+                    { command: "wp user list", description: "Lists all WordPress users." }
+                ],
+                intermediate: [
+                    { command: "wp core download", description: "Downloads the WordPress core files." },
+                    { command: "wp plugin install woocommerce --activate", description: "Installs and activates the WooCommerce plugin." },
+                    { command: "wp user create john john@example.com --role=editor", description: "Creates a new user with the editor role." },
+                    { command: "wp post create --post_title=\"Hello World\" --post_status=publish", description: "Creates a new published post." },
+                    { command: "wp cache flush", description: "Flushes the WordPress object cache." }
+                ],
+                advanced: [
+                    { command: "wp core install --url=example.com --title=\"My Site\" --admin_user=admin --admin_password=password --admin_email=admin@example.com", description: "Installs WordPress with full configuration." },
+                    { command: "wp search-replace 'http://oldsite.com' 'https://newsite.com' --all-tables --dry-run", description: "Performs a search and replace operation with dry run." },
+                    { command: "wp db export backup-$(date +%Y%m%d).sql", description: "Exports database with timestamp in filename." },
+                    { command: "wp eval 'echo wp_upload_dir()[\"basedir\"];'", description: "Evaluates PHP code to get upload directory path." },
+                    { command: "wp cron event schedule wp_version_check now +1hour --recurrence=hourly", description: "Schedules a recurring cron event." }
+                ]
+            }
+        };
+        
+        // Game state
+        let currentMode = "linux";
+        let currentDifficulty = "beginner";
+        let currentIndex = 0;
+        let startTime;
+        let errors = 0;
+        let totalKeystrokes = 0;
+        let correctKeystrokes = 0;
+        let score = 0;
+        let level = 1;
+        let streak = 0;
+        let maxStreak = 0;
+        let soundEnabled = true;
+        let combo = 0;
+        let powerUps = { slowMo: 3, hint: 5, skip: 2 };
+        let achievements = [];
+        
+        // DOM elements
+        const elements = {
+            linuxMode: document.getElementById("linux-mode"),
+            wpMode: document.getElementById("wp-mode"),
+            commandDisplay: document.getElementById("command-display"),
+            commandInput: document.getElementById("command-input"),
+            commandDescription: document.getElementById("command-description"),
+            prevBtn: document.getElementById("prev-btn"),
+            nextBtn: document.getElementById("next-btn"),
+            restartBtn: document.getElementById("restart-btn"),
+            promptElement: document.getElementById("prompt"),
+            wpmElement: document.getElementById("wpm"),
+            accuracyElement: document.getElementById("accuracy"),
+            progressElement: document.getElementById("progress"),
+            progressBar: document.getElementById("progress-bar"),
+            scoreElement: document.getElementById("score"),
+            levelElement: document.getElementById("level"),
+            levelIndicator: document.getElementById("level-indicator"),
+            streakMeter: document.getElementById("streak-meter"),
+            soundToggle: document.getElementById("sound-toggle"),
+            achievementPopup: document.getElementById("achievement-popup"),
+            comboIndicator: document.getElementById("combo-indicator"),
+            typingParticles: document.getElementById("typing-particles"),
+            terminal: document.getElementById("terminal"),
+            slowMoBtn: document.getElementById("slow-mo"),
+            hintBtn: document.getElementById("hint"),
+            skipBtn: document.getElementById("skip")
+        };
+        
+        // Sound effects (using Web Audio API)
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function createTone(frequency, duration, type = 'sine') {
+            if (!soundEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        function playSound(type) {
+            switch(type) {
+                case 'correct':
+                    createTone(800, 0.1);
+                    break;
+                case 'incorrect':
+                    createTone(200, 0.2);
+                    break;
+                case 'complete':
+                    createTone(600, 0.2);
+                    setTimeout(() => createTone(800, 0.2), 100);
+                    break;
+                case 'achievement':
+                    createTone(440, 0.3);
+                    setTimeout(() => createTone(554, 0.3), 100);
+                    setTimeout(() => createTone(659, 0.3), 200);
+                    break;
+                case 'levelup':
+                    createTone(523, 0.2);
+                    setTimeout(() => createTone(659, 0.2), 150);
+                    setTimeout(() => createTone(784, 0.3), 300);
+                    break;
+            }
+        }
+        
+        function createParticles(x, y) {
+            for (let i = 0; i < 5; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + Math.random() * 20 - 10 + 'px';
+                particle.style.top = y + Math.random() * 20 - 10 + 'px';
+                elements.typingParticles.appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 1000);
+            }
+        }
+        
+        function showAchievement(text) {
+            const popup = elements.achievementPopup;
+            document.getElementById('achievement-text').textContent = text;
+            popup.classList.add('show');
+            playSound('achievement');
+            
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3000);
+        }
+        
+        function showCombo(comboCount) {
+            const indicator = elements.comboIndicator;
+            indicator.textContent = `${comboCount}x COMBO!`;
+            indicator.style.animation = 'none';
+            indicator.offsetHeight; // Trigger reflow
+            indicator.style.animation = 'comboAnimation 1s ease-out';
+        }
+        
+        function updateStreak() {
+            const dots = elements.streakMeter.querySelectorAll('.streak-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index < streak);
+            });
+        }
+        
+        function updatePowerUps() {
+            elements.slowMoBtn.textContent = `🐌 ${powerUps.slowMo}`;
+            elements.hintBtn.textContent = `💡 ${powerUps.hint}`;
+            elements.skipBtn.textContent = `⏭️ ${powerUps.skip}`;
+            
+            elements.slowMoBtn.disabled = powerUps.slowMo <= 0;
+            elements.hintBtn.disabled = powerUps.hint <= 0;
+            elements.skipBtn.disabled = powerUps.skip <= 0;
+        }
+        
+        function checkAchievements() {
+            // Speed achievements
+            if (getCurrentWPM() >= 60 && !achievements.includes('speed60')) {
+                achievements.push('speed60');
+                showAchievement('Speed Demon! 60+ WPM achieved!');
+            }
+            
+            // Accuracy achievements
+            if (getCurrentAccuracy() >= 95 && !achievements.includes('accuracy95')) {
+                achievements.push('accuracy95');
+                showAchievement('Precision Master! 95%+ accuracy!');
+            }
+            
+            // Streak achievements
+            if (streak >= 5 && !achievements.includes('streak5')) {
+                achievements.push('streak5');
+                showAchievement('On Fire! 5 command streak!');
+            }
+            
+            if (streak >= 10 && !achievements.includes('streak10')) {
+                achievements.push('streak10');
+                showAchievement('Unstoppable! 10 command streak!');
+            }
+            
+            // Level achievements
+            if (level >= 5 && !achievements.includes('level5')) {
+                achievements.push('level5');
+                showAchievement('Rising Star! Reached level 5!');
+            }
+        }
+        
+        function getCurrentCommands() {
+            return commandSets[currentMode][currentDifficulty];
+        }
+        
+        function getCurrentWPM() {
+            if (!startTime) return 0;
+            const elapsedMinutes = (new Date() - startTime) / 60000;
+            if (elapsedMinutes > 0) {
+                const words = correctKeystrokes / 5;
+                return Math.floor(words / elapsedMinutes);
+            }
+            return 0;
+        }
+        
+        function getCurrentAccuracy() {
+            return totalKeystrokes > 0 ? Math.floor((correctKeystrokes / totalKeystrokes) * 100) : 0;
+        }
+        
+        function updateLevel() {
+            const newLevel = Math.floor(score / 1000) + 1;
+            if (newLevel > level) {
+                level = newLevel;
+                elements.levelElement.textContent = level;
+                elements.levelIndicator.textContent = `Level ${level}`;
+                playSound('levelup');
+                showAchievement(`Level Up! Welcome to level ${level}!`);
+            }
+        }
+        
+        function updateScore(points) {
+            score += points;
+            elements.scoreElement.textContent = score;
+            updateLevel();
+        }
+        
+        function init() {
+            // Event listeners
+            elements.linuxMode.addEventListener("click", () => changeMode("linux"));
+            elements.wpMode.addEventListener("click", () => changeMode("wp"));
+            elements.prevBtn.addEventListener("click", prevCommand);
+            elements.nextBtn.addEventListener("click", nextCommand);
+            elements.restartBtn.addEventListener("click", restart);
+            elements.commandInput.addEventListener("input", checkInput);
+            elements.commandInput.addEventListener("keydown", handleKeyDown);
+            elements.soundToggle.addEventListener("click", toggleSound);
+            
+            // Difficulty selector
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', () => changeDifficulty(btn.dataset.difficulty));
+            });
+            
+            // Power-ups
+            elements.slowMoBtn.addEventListener('click', () => usePowerUp('slowMo'));
+            elements.hintBtn.addEventListener('click', () => usePowerUp('hint'));
+            elements.skipBtn.addEventListener('click', () => usePowerUp('skip'));
+            
+            displayCurrentCommand();
+            updateProgress();
+            updateStreak();
+            updatePowerUps();
+            focusInput();
+        }
+        
+        function changeDifficulty(difficulty) {
+            currentDifficulty = difficulty;
+            currentIndex = 0;
+            
+            // Update UI
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.difficulty === difficulty);
+            });
+            
+            restart();
+        }
+        
+        function changeMode(mode) {
+            currentMode = mode;
+            currentIndex = 0;
+            
+            if (mode === "linux") {
+                elements.linuxMode.classList.add("active");
+                elements.wpMode.classList.remove("active");
+                elements.promptElement.innerHTML = 'user@server:~$ <span class="cursor-blink">█</span>';
+            } else {
+                elements.wpMode.classList.add("active");
+                elements.linuxMode.classList.remove("active");
+                elements.promptElement.innerHTML = 'user@server:~/wordpress$ <span class="cursor-blink">█</span>';
+            }
+            
+            restart();
+        }
+        
+        function displayCurrentCommand() {
+            const commands = getCurrentCommands();
+            if (currentIndex >= commands.length) {
+                // Course completed
+                showAchievement(`${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)} course completed!`);
+                return;
+            }
+            
+            const command = commands[currentIndex].command;
+            elements.commandDisplay.textContent = command;
+            elements.commandDescription.textContent = commands[currentIndex].description;
+            elements.commandInput.value = "";
+            focusInput();
+            startTime = null;
+        }
+        
+        function handleKeyDown(e) {
+            // Resume audio context on first user interaction
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            if (e.key === 'Enter' && elements.commandInput.value.trim()) {
+                const commands = getCurrentCommands();
+                const currentCommand = commands[currentIndex].command;
+                
+                if (elements.commandInput.value.trim() === currentCommand) {
+                    playSound('complete');
+                    setTimeout(() => {
+                        nextCommand();
+                    }, 500);
+                }
+            }
+        }
+        
+        function checkInput() {
+            if (!startTime) {
+                startTime = new Date();
+            }
+            
+            const commands = getCurrentCommands();
+            const currentCommand = commands[currentIndex].command;
+            const userInput = elements.commandInput.value;
+            
+            // Create particles at cursor position
+            const rect = elements.commandInput.getBoundingClientRect();
+            createParticles(rect.left + 20, rect.top + 20);
+            
+            // Tracking keystrokes for accuracy
+            totalKeystrokes = Math.max(userInput.length, totalKeystrokes);
+            
+            // Compare input with current command
+            let html = "";
+            let correctCount = 0;
+            let hasError = false;
+            
+            for (let i = 0; i < currentCommand.length; i++) {
+                if (i < userInput.length) {
+                    if (userInput[i] === currentCommand[i]) {
+                        html += `<span class="correct">${currentCommand[i]}</span>`;
+                        correctCount++;
+                    } else {
+                        html += `<span class="incorrect">${currentCommand[i]}</span>`;
+                        hasError = true;
+                    }
+                } else {
+                    html += currentCommand[i];
+                }
+            }
+            
+            elements.commandDisplay.innerHTML = html;
+            correctKeystrokes = correctCount;
+            
+            // Play sound feedback
+            if (userInput.length > 0) {
+                if (hasError) {
+                    playSound('incorrect');
+                    combo = 0;
+                } else {
+                    playSound('correct');
+                    combo++;
+                    
+                    // Show combo at certain intervals
+                    if (combo > 0 && combo % 5 === 0) {
+                        showCombo(combo);
+                    }
+                }
+            }
+            
+            // Update stats
+            const accuracy = getCurrentAccuracy();
+            const wpm = getCurrentWPM();
+            
+            elements.accuracyElement.textContent = `${accuracy}%`;
+            elements.wpmElement.textContent = wpm;
+            
+            // Check for achievements
+            checkAchievements();
+            
+            // Check if the command is complete and correct
+            if (userInput === currentCommand) {
+                streak++;
+                maxStreak = Math.max(streak, maxStreak);
+                
+                // Calculate score based on accuracy, speed, and difficulty
+                let points = 100;
+                if (accuracy >= 95) points += 50;
+                if (wpm >= 40) points += 30;
+                if (currentDifficulty === 'intermediate') points *= 1.5;
+                if (currentDifficulty === 'advanced') points *= 2;
+                
+                updateScore(Math.floor(points));
+                updateStreak();
+                
+                playSound('complete');
+                setTimeout(() => {
+                    nextCommand();
+                }, 800);
+            }
+        }
+        
+        function usePowerUp(type) {
+            if (powerUps[type] <= 0) return;
+            
+            powerUps[type]--;
+            updatePowerUps();
+            
+            switch(type) {
+                case 'slowMo':
+                    elements.commandInput.style.transition = 'all 2s ease';
+                    showAchievement('Slow Motion Activated!');
+                    setTimeout(() => {
+                        elements.commandInput.style.transition = 'all 0.3s ease';
+                    }, 10000);
+                    break;
+                    
+                case 'hint':
+                    const commands = getCurrentCommands();
+                    const currentCommand = commands[currentIndex].command;
+                    const userInput = elements.commandInput.value;
+                    const nextChar = currentCommand[userInput.length];
+                    
+                    if (nextChar) {
+                        elements.commandInput.value += nextChar;
+                        checkInput();
+                        showAchievement(`Hint: Next character is '${nextChar}'`);
+                    }
+                    break;
+                    
+                case 'skip':
+                    showAchievement('Command Skipped!');
+                    nextCommand();
+                    break;
+            }
+        }
+        
+        function prevCommand() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                displayCurrentCommand();
+                updateProgress();
+                resetStats();
+            }
+        }
+        
+        function nextCommand() {
+            const commands = getCurrentCommands();
+            if (currentIndex < commands.length - 1) {
+                currentIndex++;
+                displayCurrentCommand();
+                updateProgress();
+                resetStats();
+            } else {
+                // Course completed
+                showAchievement(`🎉 ${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)} course completed!`);
+                updateScore(500); // Bonus for completing course
+            }
+        }
+        
+        function resetStats() {
+            startTime = null;
+            totalKeystrokes = 0;
+            correctKeystrokes = 0;
+            combo = 0;
+        }
+        
+        function restart() {
+            currentIndex = 0;
+            errors = 0;
+            streak = 0;
+            score = 0;
+            level = 1;
+            combo = 0;
+            
+            elements.scoreElement.textContent = "0";
+            elements.levelElement.textContent = "1";
+            elements.levelIndicator.textContent = "Level 1";
+            elements.wpmElement.textContent = "0";
+            elements.accuracyElement.textContent = "0%";
+            
+            resetStats();
+            displayCurrentCommand();
+            updateProgress();
+            updateStreak();
+        }
+        
+        function updateProgress() {
+            const commands = getCurrentCommands();
+            const total = commands.length;
+            elements.progressElement.textContent = `${currentIndex + 1}/${total}`;
+            const percentage = ((currentIndex + 1) / total) * 100;
+            elements.progressBar.style.width = `${percentage}%`;
+        }
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            elements.soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+            elements.soundToggle.title = soundEnabled ? 'Disable Sound' : 'Enable Sound';
+        }
+        
+        function focusInput() {
+            setTimeout(() => {
+                elements.commandInput.focus();
+            }, 100);
+        }
+        
+        // Initialize the app
+        init();
+        
+        // Auto-focus on input when clicking anywhere on terminal
+        elements.terminal.addEventListener('click', focusInput);
+        
+        // Prevent losing focus
+        document.addEventListener('keydown', (e) => {
+            if (e.target !== elements.commandInput && e.key.length === 1) {
+                elements.commandInput.focus();
+            }
+        });
+        
+        // Welcome message
+        setTimeout(() => {
+            showAchievement('Welcome to TerminalTypist! Start typing to begin!');
+        }, 1000);
+    </script>
+</body>
+</html>
