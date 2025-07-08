@@ -38,7 +38,7 @@ A gamified typing practice application designed to help developers master Linux 
 ### Quick Start
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/terminal-typist.git
+   git clone https://github.com/deshabhishek007/terminal-typist.git
    ```
 
 2. Navigate to the project directory:
